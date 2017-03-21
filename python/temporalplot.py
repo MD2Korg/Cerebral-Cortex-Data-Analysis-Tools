@@ -82,6 +82,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--data_directory', help='Data Directory', required=True)
     parser.add_argument('--participant', help='Participant UUID', required=True)
+    parser.add_argument('--filter', help='Filter String', default='*', required=False)
     parser.add_argument('--start_day', help='Day string representing the first day to begin scanning for data',
                         required=False)
     parser.add_argument('--end_day', help='Day string representing the day to end  scanning for data', required=False)
@@ -90,6 +91,7 @@ if __name__ == "__main__":
 
     participant = args.participant
     data_dir = args.data_directory
+    filter = args.filter
 
     if args.start_day and args.end_day:
         print('HERE')
@@ -108,8 +110,8 @@ if __name__ == "__main__":
         start_date = int((datetime.datetime(start_year, start_month, start_day) - epoch).total_seconds() * 1e3)
         end_date = int((datetime.datetime(end_year, end_month, end_day) - epoch).total_seconds() * 1e3)
 
-        lines, offset, labels, gst, get = process(participant, data_dir, filter_string='*', start_day=start_date,
+        lines, offset, labels, gst, get = process(participant, data_dir, filter_string=filter, start_day=start_date,
                                                   end_day=end_date)
     else:
-        lines, offset, labels, gst, get = process(participant, data_dir, filter_string='*')
+        lines, offset, labels, gst, get = process(participant, data_dir, filter_string=filter)
     render(lines, offset, labels, gst, get)
