@@ -24,34 +24,32 @@ def process(participant, directory, filter_string='', start_day=None, end_day=No
     get = 0
     labels = []
     for f in glob.glob(directory + '/' + participant + filter_string + '.bz2'):
-        if f.find('BATT') != -1 or f.find('stream') != -1 or f.find('QUALITY') != -1:
+        print(f)
+        params = f[:-16].split('+')[3:]
+        labels.append('__'.join(params))
+        offset += 1
+        with bz2.open(f, 'rt') as csvFile:
+            data = []
+            for l in csvFile.readlines():
+                items = l.split(',')
+                ts = int(items[0])
+                if start_day is not None and end_day is not None:
+                    if ts < start_day or end_day < ts:
+                        continue
 
-            print(f)
-            params = f[:-16].split('+')[3:]
-            labels.append('__'.join(params))
-            offset += 1
-            with bz2.open(f, 'rt') as csvFile:
-                data = []
-                for l in csvFile.readlines():
-                    items = l.split(',')
-                    ts = int(items[0])
-                    if start_day is not None and end_day is not None:
-                        if ts < start_day or end_day < ts:
-                            continue
+                data.append(ts)
 
-                    data.append(ts)
+                if ts < gst:
+                    gst = ts
+                if ts > get:
+                    get = ts
 
-                    if ts < gst:
-                        gst = ts
-                    if ts > get:
-                        get = ts
-
-                blocks = process_data(data)
-                if len(blocks) > 0:
-                    pprint(blocks)
-                    for segment in blocks:
-                        lines.append([(dates.date2num(datetime.datetime.utcfromtimestamp(segment[0] / 1000.0)), offset),
-                                      (
+            blocks = process_data(data)
+            if len(blocks) > 0:
+                pprint(blocks)
+                for segment in blocks:
+                    lines.append([(dates.date2num(datetime.datetime.utcfromtimestamp(segment[0] / 1000.0)), offset),
+                                  (
                                       dates.date2num(datetime.datetime.utcfromtimestamp(segment[1] / 1000.0)), offset)])
 
     return lines, offset, labels, gst, get
